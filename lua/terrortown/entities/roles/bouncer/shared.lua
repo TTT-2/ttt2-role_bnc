@@ -7,7 +7,7 @@ end
 ROLE.Base = "ttt_role_base"
 
 function ROLE:PreInitialize()
-	self.color = Color(235, 100, 50, 255)
+	self.color = Color(95, 210, 110, 255)
 
 	self.abbr = "bnc"
 	self.surviveBonus = 0
@@ -17,22 +17,22 @@ function ROLE:PreInitialize()
 	self.preventKillCredits = false
 	self.preventTraitorAloneCredits = false
 
-	self.defaultTeam = TEAM_TRAITOR
+	self.defaultTeam = TEAM_INNOCENT
 
 	self.conVarData = {
 		pct = 0.17,
 		maximum = 1,
 		minPlayers = 6,
 		credits = 0,
-		shopFallback = SHOP_FALLBACK_TRAITOR,
+		shopFallback = SHOP_FALLBACK_NONE,
 		togglable = true,
-		traitorButton = 1,
+		traitorButton = 0,
 		random = 50
 	}
 end
 
 function ROLE:Initialize()
-	roles.SetBaseRole(self, ROLE_TRAITOR)
+	roles.SetBaseRole(self, ROLE_INNOCENT)
 end
 
 if SERVER then
@@ -41,7 +41,7 @@ if SERVER then
 			return false
 		end
 
-		if not ply:Crouching() and not ply:GetInternalVariable("m_fIsWalking") then
+		if not ply:GetInternalVariable("m_fIsWalking") then
 			return false
 		end
 
@@ -114,14 +114,18 @@ if SERVER then
 
 		if not ply.bouncerSpecialInventory then
 			ply:GiveEquipmentWeapon("weapon_ttt_doorlocker")
-			ply:GetWeapon("weapon_ttt_doorlocker"):SetClip1(15)
-
 			ply:GiveEquipmentWeapon("weapon_ttt_doorghost")
+			ply:GiveEquipmentWeapon("weapon_ttt_binoculars")
+
+			ply:GetWeapon("weapon_ttt_doorlocker"):SetClip1(15)
 
 			ply.bouncerSpecialInventory = {}
 		end
 
 		LoadInventoryFromTable(ply, ply.bouncerSpecialInventory)
+
+		ply:GetWeapon("weapon_ttt_doorlocker").AllowDrop = false
+		ply:GetWeapon("weapon_ttt_binoculars").AllowDrop = false
 	end
 
 	local function DisableBouncer(ply)
@@ -161,6 +165,18 @@ if SERVER then
 
 				DisableBouncer(ply)
 			end
+		end
+	end)
+
+	local allowedWeapons = {
+		["weapon_ttt_doorlocker"] = true,
+		["weapon_ttt_doorghost"] = true,
+		["weapon_ttt_binoculars"] = true
+	}
+
+	hook.Add("PlayerCanPickupWeapon", "ttt2_role_bouncer_pickup", function(ply, wep)
+		if IsBouncerCrouching(ply) and not allowedWeapons[wep:GetClass()] then
+			return false
 		end
 	end)
 end

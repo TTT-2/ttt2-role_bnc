@@ -26,8 +26,8 @@ if CLIENT then
 	SWEP.Icon = "vgui/ttt/icon_doorghost"
 end
 
-SWEP.Kind = WEAPON_EQUIP2
-SWEP.CanBuy = {ROLE_TRAITOR, ROLE_DETECTIVE}
+SWEP.Kind = WEAPON_EXTRA
+SWEP.CanBuy = nil
 
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/v_c4.mdl"
@@ -54,6 +54,8 @@ SWEP.Secondary.Delay = 0.5
 
 SWEP.Charge = 0
 SWEP.Timer = -1
+
+SWEP.AllowDrop = false
 
 function SWEP:GetEntity()
 	local owner = self:GetOwner()
@@ -90,7 +92,7 @@ function SWEP:PrimaryAttack()
 	if not IsValid(ent) then return end
 
 	if not door.IsValidNormal(ent:GetClass()) then
-		LANG.Msg(owner, "door_not_lockable", nil, MSG_MSTACK_WARN)
+		LANG.Msg(owner, "doorghost_not_hauntable", nil, MSG_MSTACK_WARN)
 
 		owner:EmitSound(sounds["empty"])
 
@@ -98,13 +100,13 @@ function SWEP:PrimaryAttack()
 	end
 
 	if ent:GetNWBool("haunted_door", false) then
-		LANG.Msg(owner, "door_already_haunted", nil, MSG_MSTACK_WARN)
+		LANG.Msg(owner, "doorghost_already_haunted", nil, MSG_MSTACK_WARN)
 
 		return
 	end
 
 	if ent:IsDoorLocked() then
-		LANG.Msg(owner, "door_is_locked", nil, MSG_MSTACK_WARN)
+		LANG.Msg(owner, "doorghost_is_locked", nil, MSG_MSTACK_WARN)
 
 		owner:EmitSound(sounds["empty"])
 
@@ -117,6 +119,8 @@ function SWEP:PrimaryAttack()
 
 	ent:EmitSound(sounds["laugh1"])
 	ent:EmitSound(sounds["laugh2"])
+
+	LANG.Msg(owner, "doorghost_now_haunted", nil, MSG_MSTACK_WARN)
 end
 
 function SWEP:SecondaryAttack()
@@ -127,13 +131,15 @@ function SWEP:SecondaryAttack()
 	if not IsValid(ent) then return end
 
 	if not ent:GetNWBool("haunted_door", false) then
-		LANG.Msg(owner, "door_not_haunted", nil, MSG_MSTACK_WARN)
+		LANG.Msg(owner, "doorghost_not_haunted", nil, MSG_MSTACK_WARN)
 
 		return
 	end
 
 	ent:SetNWBool("haunted_door", false)
 	timer.Remove("bouncer_doorghost_" .. ent:EntIndex())
+
+	LANG.Msg(owner, "doorghost_now_unhaunted", nil, MSG_MSTACK_WARN)
 end
 
 if SERVER then
@@ -151,6 +157,12 @@ if SERVER then
 end
 
 if CLIENT then
+	function SWEP:Initialize()
+		self:AddHUDHelp("doorghost_help_msb1", "doorghost_help_msb2", true)
+
+		return self.BaseClass.Initialize(self)
+	end
+
 	hook.Add("TTTRenderEntityInfo", "ttt2_defi_display_info", function(tData)
 		local ent = tData:GetEntity()
 		local client = LocalPlayer()
@@ -160,7 +172,8 @@ if CLIENT then
 		if not ent:GetNWBool("haunted_door", false) then return end
 
 		tData:AddDescriptionLine(
-			LANG.TryTranslation("door_is_haunted")
+			LANG.TryTranslation("door_is_haunted"),
+			COLOR_YELLOW
 		)
 	end)
 end
