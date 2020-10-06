@@ -2,7 +2,7 @@ L = LANG.GetLanguageTableReference("english")
 
 -- GENERAL ROLE LANGUAGE STRINGS
 L[BOUNCER.name] = "Bouncer"
-L["info_popup_" .. BOUNCER.name] = [[You're a Bouncer. Doors seem to attrackt you.
+L["info_popup_" .. BOUNCER.name] = [[You're a Bouncer. Doors seem to attract you.
 Sneak or duck to become invisible and manipulate the doors on the map for other players.
 You have to walk slowly to use your special weapons (default: Alt key).]]
 L["body_found_" .. BOUNCER.abbr] = "They were a Bouncer!"
